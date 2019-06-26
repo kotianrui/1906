@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<title>Document</title>
+<style>
+*{
+    margin: 0;
+    padding: 0;
+}
+.wrap{
+    overflow: hidden;
+    position: relative;
+    /* padding: 50px; */
+    width: 1186px;
+    margin: 50px auto 0;
+}
+.left{
+    float: left;
+    width: 350px;
+    height: 350px;
+    position: relative;
+    border: 1px solid green;
+    cursor: move;
+}
+.left img{
+    width: 350px;
+    height: 350px;
+    display: block;
+}
+.mask{
+    width: 175px;
+    height: 175px;
+    background-color: orange;
+    opacity: 0.5;
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: none;
+}
+.right{
+    float: left;
+    width: 814px;
+    height: 462px;
+    margin-left: 20px;
+}
+.right img{
+    width: 814px;
+    height: 462px;
+    display: block;
+}
+.showbox{
+    width: 400px;
+    height: 400px;
+    position: absolute;
+    left: 410px;
+    /* top: 50px; */
+    overflow: hidden;
+    border: 1px solid red;
+    display: none;
+}
+.showbox img{
+    width: 800px;
+    height: 800px;
+    position: absolute;
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+    <div class="left">
+        <img class="minimg" src="max.jpg" alt="">
+        <div class="mask"></div>
+    </div>
+    <div class="right">
+        <img src="msg.png" alt="">
+    </div>
+    <div class="showbox">
+        <img class="maximg" src="max.jpg" alt="">
+    </div>
+</div>
+
+<script>
+// 获取元素到最外层的offsetLeft/offsetTop值（类似jquery的offset方法）
+function offset(dom) {
+    var l = 0, t = 0;
+    while(dom){
+        l += dom.offsetLeft;
+        t += dom.offsetTop;
+        // console.log(l);
+        // dom = dom.parentNode;
+        dom = dom.offsetParent;//返回当前元素的上一层定位父级
+        if (dom == document.body) {
+            return {Left: l, Top: t};
+        }
+    }
+}
+
+
+// 1.鼠标移入：原图容器 -> 蒙板层显示、放大的图显示
+// 2.鼠标移出：原图容器 -> 蒙板层隐藏、放大的图隐藏
+// 3.鼠标移动：原图容器 -> 蒙板跟着移动、放大图跟着移动（移动方向相反 -负数）
+
+var left = document.querySelector('.left');
+var mask = document.querySelector('.mask');
+var showbox = document.querySelector('.showbox');
+var maximg = document.querySelector('.maximg');
+
+console.log(offset(left));
+
+left.onmouseover = function () {
+    mask.style.display = 'block';
+    showbox.style.display = 'block';
+}
+left.onmouseout = function () {
+    mask.style.display = 'none';
+    showbox.style.display = 'none';
+}
+left.onmousemove = function (ev) {
+    var e = ev || window.event;
+
+    // 计算蒙板的定位值
+    var l = e.clientX - mask.clientWidth/2 - offset(left).Left;
+    var t = e.clientY - mask.clientHeight/2 - offset(left).Top;
+
+    if (l <= 0){//左边临界值
+        l = 0;
+    }
+    if (l >= (left.clientWidth - mask.clientWidth)) {//右边临界值
+        l = left.clientWidth - mask.clientWidth;
+    }
+    if (t <= 0) {//上边界
+        t = 0;
+    }
+    if (t >= (left.clientHeight - mask.clientHeight)) {//下边界
+        t = left.clientHeight - mask.clientHeight;
+    }
+
+    // 蒙板定位
+    mask.style.left = l + 'px';
+    mask.style.top = t + 'px';
+
+    // 大图定位
+    // maximg.style.left = -(l * 2) + 'px';
+    // maximg.style.top = -(t * 2) + 'px';
+
+    // 运动比例
+    var scaleX = l / (left.clientWidth - mask.clientWidth);
+    var scaleY = t / (left.clientHeight - mask.clientHeight);
+
+    // 大图定位
+    maximg.style.left = -(maximg.clientWidth - showbox.clientWidth) * scaleX + 'px';
+    maximg.style.top = -(maximg.clientHeight - showbox.clientHeight) * scaleY + 'px';
+
+}
+
+
+</script>
+</body>
+</html>
